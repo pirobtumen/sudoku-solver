@@ -12,12 +12,51 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 /*
 	Sudoku Solver
-	--------------
+	--------------------------
 	
-	(...)
+	This program solves Sudokus using backtracking.
+
+	- Compiling: make
+	- Executing: ./sudoku-solver <sudoku_input_file>
+
+	Sudoku (Game)
+	--------------------------
+	
+	Sudoku board is a 9x9 matrix where each square is a number from 1 to 9.
+	The objetive is to fill it with the numbers but it can't be repeated
+	numbers in any row/column/submatrix.
+		
+	
+	Sudoku (Object)
+	--------------------------
+	
+	It represents a Sudoku puzzle.
+	
+	Representation
+	--------------
+	The internal representation is a one dimension vector (row major order).
+	
+	Invariant
+	---------
+	Each vector's element has to be a number from 0 to 9.
+	The 0 are unknow valued used for solving it.
+	
+	* valid() doesn't consider 0 when checking.
+	
+	Public operations
+	-----------------
+	read_file, valid, str, solve.
+	
+	Input file
+	----------
+	The input file has to be a 9 rows and 9 numbers per column.
+	The character 'x' represents unknown values.
+	See: sudoku_simple.txt, sudoku_hard.txt .
+	
 	
 	Alberto Sola Comino - 2016
 */
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -27,7 +66,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 using namespace std;
 
 class Sudoku{
-	
+
 private:
 	typedef vector<int> sudoku_t;
 	typedef sudoku_t::iterator sudoku_iterator;
@@ -37,7 +76,19 @@ private:
 	sudoku_t sudoku;
 	
 	void get_submatrix( int start, int length, int jump, vector<int> & output ){
-		
+		/*
+			Return a vector from the Sudoku.
+			
+			- Start: square index. From 0 to 80. ( Row major order )
+			- Length: consecutive squares.
+			- Jump: space between iterations.
+			
+			Examples: (start, length, jump)
+			
+			- Row:    ( [0,9,18...], 9, 0 )
+			- Column: ( [0-8], 1, 9 )
+			- Submatrix: ( [0,3,6,27,30,33,54,57,60], 3, 9 )
+		*/
 		int index = start;
 		int count = 1;
 		int num;
@@ -61,25 +112,12 @@ private:
 			
 		}
 		
-		/*
-		cout << "Data: " << endl;
-		vector<int>::const_iterator iter = numbers.begin();
-		vector<int>::const_iterator end = numbers.end();
-
-		while( iter != end ){
-
-			cout << (*iter);
-
-			++iter;
-		}
-
-		cout << endl;
-		*/
-		
 	}
 	
 	bool check_repeated( const vector<int> & sudoku_numbers ){
-		
+		/*
+			Check for repeated elements in a vector.
+		*/
 		set<int> numbers;
 		pair< set<int>::iterator, bool > insert;
 		insert.second = true;
@@ -163,8 +201,11 @@ public:
 	}
 
 	bool valid(){
-		
-		int square_corner[9] = {0,3,6,27,30,33,54,57,60};
+		/*
+			Checks if the sudoku is valid (no numbers repeated in each row/col/sumatrix).
+			The 0s are not considered.
+		*/
+		int region_corner[9] = {0,3,6,27,30,33,54,57,60};
 		vector<int> numbers;
 		
 		bool valid = true;
@@ -187,10 +228,10 @@ public:
 			
 		}
 		
-		// Check SQUARES
+		// Check SUBMATRIX
 		for( int i = 0; i < 9 && valid; i++ ){
 			
-			get_submatrix( square_corner[i], 3, 9, numbers );
+			get_submatrix( region_corner[i], 3, 9, numbers );
 			valid = check_repeated( numbers );			
 			numbers.clear();
 			
@@ -205,7 +246,6 @@ public:
 			Find a valid solution using backtracking.
 		*/
 		
-		// TODO: Optimize
 		int pos = 0;
 		int max_pos = sudoku.size();
 		
@@ -214,55 +254,54 @@ public:
 		vector<int>::const_iterator start = initial_values.begin();
 		vector<int>::const_iterator end = initial_values.end();
 		
+		bool search;
 		
-		while( pos < max_pos ){
+		if( valid() ){			
+			while( pos < max_pos ){
 
+				if( !binary_search( start, end, pos ) ){
+				
+					if( sudoku[pos] < 9 ) 			
+						++sudoku[pos];
+				
+					while( !valid() && sudoku[pos] < 9 )
+						++sudoku[pos];
+				
+					// Backtraking
+					if( !valid() ){
+					
+						sudoku[pos] = 0;	
+						--pos;					
+						search = binary_search( start, end, pos );
+					
+						while( (search || (sudoku[pos] == 9) && pos > 0 ){
+						
+							if( sudoku[pos] == 9 && !search )
+								sudoku[pos] = 0;
+							
+							--pos;
+						
+							search = binary_search( start, end, pos );
+						}
+					
+					}
+					else
+						++pos;
 
-			if( !binary_search( start, end, pos ) ){
-			
-				if( sudoku[pos] < 9 ) 			
-					++sudoku[pos];
-				
-				while( !valid() && sudoku[pos] < 9 )
-					++sudoku[pos];
-				
-				// Backtraking
-				if( !valid() ){
-					
-					sudoku[pos] = 0;	
-					
-					--pos;
-					
-					while( ( binary_search( start, end, pos ) || (sudoku[pos] == 9 && !binary_search( start, end, pos )) ) && pos > 0 )
-						--pos;
-					
 				}
 				else
 					++pos;
-
-				
+		
 			}
-			
-			else
-				++pos;
 		
-			
-			//cout << str() << endl;
-			
-			//cout << pos << endl;
-			
-			//cin >> tmp;
 		}
-		
 	}
-
 };
 
-const int Sudoku::SIZE = 9;
+const int Sudoku::SIZE = 9;   // Sudoku Row/Column length
 
 
 int main( int args, char ** argv ){
-
 
 	Sudoku sudoku;
 	
