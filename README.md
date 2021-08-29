@@ -1,33 +1,37 @@
-# Sudoku Solver
+# sudoku-solver
 
-Simple algorithm for solving sudokus using backtracking in C++.
+Simple algorithm for solving sudokus using backtracking.
 
-## Algorithm
-
-Constant number: the numbers in a sudoku that you cannot change.
-
-- sudoku[index] is not a constant number:
-  - If it's a 9: backtrack(index).
-  - If it's not a 9:
-    - number++
-    - It's valid: index++
-
-- sudoku[index] is constant:
-  - index++
-
-Backtrack(index):
-  - index--
-  - while(constant(index))
-    - index--
+> I love programming challenges. I developed a C++ version some years ago. Now I've added a Go version just for fun, in order to improve my coding skills.
 
 
 ## Usage
 
-  make
-  ./sudoku-solver <input file>
+### Cpp
+
+```
+$ cd cpp
+$ make
+$ ./sudoku-solver <input file>
+```
+
+### Go
+
+```
+$ cd go
+$ go run main.go <input file>
+```
+
+This version has unit testing, that you can run with the command `go test -v ./...`.
 
 ## Input
 
-A sudoku where the unkown numbers are 'x'. Examples:
+A text file sudoku where:
+- Each number is a sudoku value [1-9].
+- Nine rows, nine columns.
+- Unkown numbers are represented with 'x'.
+
+Example files:
   - sudoku_easy.txt
   - sudoku_hard.txt
+
